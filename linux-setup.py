@@ -111,7 +111,7 @@ ${{iptables}}-save > /etc/iptables/rules.v4
     with open(script_iptables4, 'w') as f:
         for line in text:
             f.write(line)
-    os.chmod(script_iptables4, mode=0o755)
+    os.chmod(script_iptables4, 0o755)
     subprocess.call(script_iptables4)
     print('Done')
 
@@ -148,7 +148,7 @@ ${{iptables6}}-save > /etc/iptables/rules.v6
     with open(script_iptables6, 'w') as f:
         for line in text:
             f.write(line)
-    os.chmod(script_iptables6, mode=0o755)
+    os.chmod(script_iptables6, 0o755)
     subprocess.call(script_iptables6)
     print('Done')
 
@@ -172,7 +172,7 @@ def setup_mounts(username):
         for line in text:
             f.write(line)
     os.chown(secret_file, username['uid'], username['uid'])
-    os.chmod(secret_file, mode=0o600)
+    os.chmod(secret_file, 0o600)
     apt_install(softlist)
     os.makedirs(mount_directory, exist_ok=True)
     os.makedirs(mount_directory_home, exist_ok=True)
@@ -198,7 +198,7 @@ def setup_mounts(username):
                     '{0}/{1}'.format(mount_directory, share),
                     '{0}/{1}'.format(mount_directory_home, share)
                 )
-    os.chmod('/etc/auto.{0}'.format(nas_name), mode=0o600)
+    os.chmod('/etc/auto.{0}'.format(nas_name), 0o600)
     os.makedirs('/etc/auto.master.d', exist_ok=True)
     if os.path.exists('/etc/auto.master.d/{0}.autofs'.format(nas_name)):
         os.remove('/etc/auto.master.d/{0}.autofs'.format(nas_name))
