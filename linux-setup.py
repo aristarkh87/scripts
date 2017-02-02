@@ -98,23 +98,24 @@ def get_chassis():
 def apt_install(softlist):
     """Install software with apt."""
     cache = apt.Cache()
-    cache.update()
-    not_found = ''
+    not_found = []
     for soft in softlist:
         try:
             pkg = cache[soft]
         except KeyError:
-            not_found += ' {0}'.format(soft)
+            not_found.append(soft)
             continue
-        if not pkg.is_installed:
-            pkg.mark_install()
-    try:
-        cache.commit()
-    except:
-        print('\nERROR: Failed to install software\n')
+        pkg.mark_install()
+    if cache.install_count > 0:
+        try:
+            cache.update()
+            cache.commit()
+        except Exception as e:
+            print('ERROR: {0}'.format(e))
     cache.close()
     if len(not_found) > 0:
-        print('\nWARNING: Package not found:{0}'.format(not_found))
+        not_found = ', '.join(not_found)
+        print('WARNING: Package not found: {0}'.format(not_found))
 
 
 def install_software(chassis):
