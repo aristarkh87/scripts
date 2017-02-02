@@ -47,7 +47,7 @@ def is_root():
 
 
 def get_username():
-    """Get login and uid for user."""
+    """Get login and uid for user. Return tuple (login, uid)."""
     login = 'aristarkh'
     option = input('Your login is {0}? (Y/n) '.format(login))
     while True:
@@ -62,13 +62,11 @@ def get_username():
         else:
             login = input('Please, enter your login: ')
             option = 'y'
-
-    username = {'login': login, 'uid': uid}
-    return username
+    return login, uid
 
 
 def get_chassis():
-    """Define chassis type of computer."""
+    """Get chassis type of computer. Return string 'Notebook' or 'Desktop'."""
     chassis = subprocess.check_output(
         'dmidecode -s chassis-type',
         shell=True,
@@ -226,30 +224,30 @@ ${{iptables6}}-save > /etc/iptables/rules.v6
     print('Done')
 
 
-def setup_mounts(username):
+def setup_mounts(user):
     """Install autofs and setup mounts."""
     softlist = ['autofs', 'cifs-utils']
     nas_name = 'a-nas'
     nas_domain = 'aristarkh.net'
     nas_fqdn = '{0}.{1}'.format(nas_name, nas_domain)
     mount_directory = '/{0}'.format(nas_name)
-    mount_directory_home = '/home/{0}/{1}'.format(username['login'], nas_name)
-    secret_file = '/home/{0}/.{1}'.format(username['login'], nas_name)
+    mount_directory_home = '/home/{0}/{1}'.format(user[0], nas_name)
+    secret_file = '/home/{0}/.{1}'.format(user[0], nas_name)
     print('Setting up {0} mounts...'.format(nas_name))
     password = getpass(prompt='Enter the password to {0}: '.format(nas_name))
     text = (
-        'username={0}\n'.format(username['login']),
+        'username={0}\n'.format(user[0]),
         'password={0}'.format(password)
     )
     with open(secret_file, 'w') as f:
         for line in text:
             f.write(line)
-    os.chown(secret_file, username['uid'], username['uid'])
+    os.chown(secret_file, user[1], user[1])
     os.chmod(secret_file, 0o600)
     apt_install(softlist)
     os.makedirs(mount_directory, exist_ok=True)
     os.makedirs(mount_directory_home, exist_ok=True)
-    os.chown(mount_directory_home, username['uid'], username['uid'])
+    os.chown(mount_directory_home, user[1], user[1])
     if os.path.exists('/etc/auto.{0}'.format(nas_name)):
         os.remove('/etc/auto.{0}'.format(nas_name))
     for share in shares:
@@ -261,7 +259,7 @@ def setup_mounts(username):
                      'iocharset=utf8 '\
                      '://{3}/{0}\n'
         mount_opts = mount_opts.format(
-            share, secret_file, username['uid'], nas_fqdn)
+            share, secret_file, user[1], nas_fqdn)
         with open('/etc/auto.{0}'.format(nas_name), 'a') as f:
             f.write(mount_opts)
             if not os.path.exists(
@@ -327,9 +325,9 @@ def setup_brightness():
     print('Done')
 
 
-def setup_conky(username, chassis):
+def setup_conky(user, chassis):
     """Install and setup conky."""
-    conky_config = '/home/{0}/.conkyrc'.format(username['login'])
+    conky_config = '/home/{0}/.conkyrc'.format(user[0])
     apt_install(['conky'])
     if os.path.exists(conky_config):
         shutil.copyfile(conky_config, conky_config + '.bak')
@@ -419,11 +417,11 @@ Time left: ${alignr}${battery_time}
                 f.write(line)
     with open(conky_config, 'a') as f:
         f.write(']];\n')
-    os.chown(conky_config, username['uid'], username['uid'])
+    os.chown(conky_config, user[1], user[1])
     print('Done')
 
 
-def main_menu(username, chassis):
+def main_menu(user, chassis):
     """Main menu."""
     menu = '''
 \t*** Main menu ***\n
@@ -445,21 +443,21 @@ def main_menu(username, chassis):
         elif option == '2':
             setup_firewall()
         elif option == '3':
-            setup_mounts(username)
+            setup_mounts(user)
         elif option == '4':
             setup_grub()
         elif option == '5':
             setup_brightness()
         elif option == '6':
-            setup_conky(username, chassis)
+            setup_conky(user, chassis)
 
 
 def main():
     """Main function."""
     is_root()
-    username = get_username()
+    user = get_username()
     chassis = get_chassis()
-    main_menu(username, chassis)
+    main_menu(user, chassis)
 
 
 if __name__ == '__main__':
