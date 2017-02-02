@@ -180,8 +180,7 @@ ${{iptables}} -A INPUT -s ${{localnet}} -p tcp --dport 22 -j ACCEPT
 ${{iptables}}-save > /etc/iptables/rules.v4
 '''.format(localnet4)
     with open(script_iptables4, 'w') as f:
-        for line in text:
-            f.write(line)
+        f.write(text)
     os.chmod(script_iptables4, 0o755)
     subprocess.call(script_iptables4)
     print('Done')
@@ -217,8 +216,7 @@ ${{iptables6}} -A INPUT -s ${{localnet}} \
 ${{iptables6}}-save > /etc/iptables/rules.v6
 '''.format(localnet6)
     with open(script_iptables6, 'w') as f:
-        for line in text:
-            f.write(line)
+        f.write(text)
     os.chmod(script_iptables6, 0o755)
     subprocess.call(script_iptables6)
     print('Done')
@@ -235,13 +233,12 @@ def setup_mounts(user):
     secret_file = '/home/{0}/.{1}'.format(user[0], nas_name)
     print('Setting up {0} mounts...'.format(nas_name))
     password = getpass(prompt='Enter the password to {0}: '.format(nas_name))
-    text = (
+    text = [
         'username={0}\n'.format(user[0]),
-        'password={0}'.format(password)
-    )
+        'password={0}\n'.format(password)
+    ]
     with open(secret_file, 'w') as f:
-        for line in text:
-            f.write(line)
+        f.writelines(text)
     os.chown(secret_file, user[1], user[1])
     os.chmod(secret_file, 0o600)
     apt_install(softlist)
@@ -320,8 +317,7 @@ def setup_brightness():
         if insert_needed is True:
                 text.insert(-1, command + '\n')
         f.seek(0)
-        for line in text:
-            f.write(line)
+        f.writelines(text)
     print('Done')
 
 
@@ -400,8 +396,7 @@ Local: ${{alignr}}${{time %H:%M}}
 Moscow: ${{alignr}}${{tztime Europe/Moscow %H:%M}}
 '''.format(*network_devices)
     with open(conky_config, 'w') as f:
-        for line in text:
-            f.write(line)
+        f.write(text)
     if chassis == 'Notebook':
         text = '''\
 ${hr}
@@ -413,8 +408,7 @@ Charge: ${alignr}${battery}
 Time left: ${alignr}${battery_time}
 '''
         with open(conky_config, 'a') as f:
-            for line in text:
-                f.write(line)
+            f.write(text)
     with open(conky_config, 'a') as f:
         f.write(']];\n')
     os.chown(conky_config, user[1], user[1])
