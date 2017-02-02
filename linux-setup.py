@@ -15,27 +15,10 @@ from pwd import getpwnam
 from getpass import getpass
 
 
-soft_common = [
-    'ttf-mscorefonts-installer',
-    'mc',
-    'vim',
-    'vlc',
-    'keepassx',
-    'dropbox'
-]
-soft_gtk = [
-    'network-manager-vpnc-gnome',
-    'remmina-plugin-rdp'
-]
-soft_kde = [
-    'network-manager-vpnc',
-    'krdc'
-]
-shares = [
-    'public',
-    'Data',
-    'Multimedia'
-]
+soft_common = ['ttf-mscorefonts-installer', 'mc', 'vim', 'vlc', 'keepassx']
+soft_gtk = ['network-manager-vpnc-gnome', 'remmina-plugin-rdp']
+soft_kde = ['network-manager-vpnc', 'krdc']
+shares = ['public', 'Data', 'Multimedia']
 brightness = 70
 
 
@@ -67,10 +50,9 @@ def get_username():
 
 def get_chassis():
     """Get chassis type of computer. Return string 'Notebook' or 'Desktop'."""
-    chassis = subprocess.check_output(
-        'dmidecode -s chassis-type',
-        shell=True,
-        universal_newlines=True)
+    chassis = subprocess.check_output('dmidecode -s chassis-type',
+                                      shell=True,
+                                      universal_newlines=True)
     chassis = chassis.split('\n')[0]
     if chassis != 'Desktop' and chassis != 'Notebook':
         menu = '''
@@ -127,12 +109,7 @@ def install_software(chassis):
         softlist = soft_common + soft_gtk
     cache.close()
     if chassis == 'Notebook':
-        soft_note = [
-            'tlp',
-            'tlp-rdw',
-            'powertop',
-            'xbacklight'
-        ]
+        soft_note = ['tlp', 'tlp-rdw', 'powertop', 'xbacklight']
         softlist += soft_note
     apt_install(softlist)
     print('Done')
@@ -234,10 +211,8 @@ def setup_mounts(user):
     secret_file = '/home/{0}/.{1}'.format(user[0], nas_name)
     print('Setting up {0} mounts...'.format(nas_name))
     password = getpass(prompt='Enter the password to {0}: '.format(nas_name))
-    text = [
-        'username={0}\n'.format(user[0]),
-        'password={0}\n'.format(password)
-    ]
+    text = ['username={0}\n'.format(user[0]),
+            'password={0}\n'.format(password)]
     with open(secret_file, 'w') as f:
         f.writelines(text)
     os.chown(secret_file, user[1], user[1])
@@ -249,24 +224,15 @@ def setup_mounts(user):
     if os.path.exists('/etc/auto.{0}'.format(nas_name)):
         os.remove('/etc/auto.{0}'.format(nas_name))
     for share in shares:
-        mount_opts = '{0} '\
-                     '-fstype=cifs,'\
-                     'rw,'\
-                     'credentials={1},'\
-                     'uid={2},'\
-                     'iocharset=utf8 '\
-                     '://{3}/{0}\n'
-        mount_opts = mount_opts.format(
-            share, secret_file, user[1], nas_fqdn)
+        mount_opts = '{0} -fstype=cifs,rw,credentials={1},uid={2},'\
+                     'iocharset=utf8 ://{3}/{0}\n'
+        mount_opts = mount_opts.format(share, secret_file, user[1], nas_fqdn)
         with open('/etc/auto.{0}'.format(nas_name), 'a') as f:
             f.write(mount_opts)
             if not os.path.exists(
-                '{0}/{1}'.format(mount_directory_home, share)
-            ):
-                os.symlink(
-                    '{0}/{1}'.format(mount_directory, share),
-                    '{0}/{1}'.format(mount_directory_home, share)
-                )
+                    '{0}/{1}'.format(mount_directory_home, share)):
+                os.symlink('{0}/{1}'.format(mount_directory, share),
+                           '{0}/{1}'.format(mount_directory_home, share))
     os.chmod('/etc/auto.{0}'.format(nas_name), 0o600)
     os.makedirs('/etc/auto.master.d', exist_ok=True)
     if os.path.exists('/etc/auto.master.d/{0}.autofs'.format(nas_name)):
@@ -290,11 +256,9 @@ def setup_grub():
     with open(grub_config, 'w') as f:
         with open(bak_file) as temp_file:
             for line in temp_file:
-                line = line.replace(
-                    'GRUB_DEFAULT=0',
-                    'GRUB_SAVEDEFAULT=true\n'
-                    'GRUB_DEFAULT=saved'
-                )
+                line = line.replace('GRUB_DEFAULT=0',
+                                    'GRUB_SAVEDEFAULT=true\n'
+                                    'GRUB_DEFAULT=saved')
                 f.write(line)
     subprocess.call('update-grub')
     print('Done')
@@ -328,6 +292,7 @@ def setup_conky(user, chassis):
     apt_install(['conky'])
     if os.path.exists(conky_config):
         shutil.copyfile(conky_config, conky_config + '.bak')
+        os.chown(conky_config + '.bak', user[1], user[1])
     network_devices = os.listdir('/sys/class/net')
     network_devices.remove('lo')
     if len(network_devices) < 2:
