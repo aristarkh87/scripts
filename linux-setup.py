@@ -249,24 +249,16 @@ def setup_mounts(user):
     if os.path.exists('/etc/auto.{0}'.format(nas_name)):
         os.remove('/etc/auto.{0}'.format(nas_name))
     for share in shares:
-        mount_opts = '{0} '\
-                     '-fstype=cifs,'\
-                     'rw,'\
-                     'credentials={1},'\
-                     'uid={2},'\
-                     'iocharset=utf8 '\
-                     '://{3}/{0}\n'
-        mount_opts = mount_opts.format(
-            share, secret_file, user[1], nas_fqdn)
+        mount_opts = '{0} -fstype=cifs,rw,credentials={1},uid={2},'\
+                     'iocharset=utf8 ://{3}/{0}\n'
+        mount_opts = mount_opts.format(share, secret_file, user[1], nas_fqdn)
         with open('/etc/auto.{0}'.format(nas_name), 'a') as f:
             f.write(mount_opts)
             if not os.path.exists(
-                '{0}/{1}'.format(mount_directory_home, share)
-            ):
+                    '{0}/{1}'.format(mount_directory_home, share)):
                 os.symlink(
                     '{0}/{1}'.format(mount_directory, share),
-                    '{0}/{1}'.format(mount_directory_home, share)
-                )
+                    '{0}/{1}'.format(mount_directory_home, share))
     os.chmod('/etc/auto.{0}'.format(nas_name), 0o600)
     os.makedirs('/etc/auto.master.d', exist_ok=True)
     if os.path.exists('/etc/auto.master.d/{0}.autofs'.format(nas_name)):
@@ -290,11 +282,9 @@ def setup_grub():
     with open(grub_config, 'w') as f:
         with open(bak_file) as temp_file:
             for line in temp_file:
-                line = line.replace(
-                    'GRUB_DEFAULT=0',
-                    'GRUB_SAVEDEFAULT=true\n'
-                    'GRUB_DEFAULT=saved'
-                )
+                line = line.replace('GRUB_DEFAULT=0',
+                                    'GRUB_SAVEDEFAULT=true\n'
+                                    'GRUB_DEFAULT=saved')
                 f.write(line)
     subprocess.call('update-grub')
     print('Done')
@@ -328,6 +318,7 @@ def setup_conky(user, chassis):
     apt_install(['conky'])
     if os.path.exists(conky_config):
         shutil.copyfile(conky_config, conky_config + '.bak')
+        os.chown(conky_config + '.bak', user[1], user[1])
     network_devices = os.listdir('/sys/class/net')
     network_devices.remove('lo')
     if len(network_devices) < 2:
