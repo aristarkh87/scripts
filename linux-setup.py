@@ -46,6 +46,79 @@ def is_root():
              'Please try again, this time using "sudo". Exiting. ')
 
 
+def get_username():
+    """Get login and uid for user."""
+    login = 'aristarkh'
+    option = input('Your login is {0}? (Y/n) '.format(login))
+    while True:
+        if option == 'y' or option == '':
+            try:
+                uid = getpwnam(login).pw_uid
+            except KeyError:
+                print('ERROR: Login not found\n')
+                option = 'n'
+            else:
+                break
+        else:
+            login = input('Please, enter your login: ')
+            option = 'y'
+
+    username = {'login': login, 'uid': uid}
+    return username
+
+
+def get_chassis():
+    """Define chassis type of computer."""
+    chassis = subprocess.check_output(
+        'dmidecode -s chassis-type',
+        shell=True,
+        universal_newlines=True)
+    chassis = chassis.split('\n')[0]
+    if chassis != 'Desktop' and chassis != 'Notebook':
+        menu = '''
+\t*** Chassis type ***\n
+\t1. Notebook
+\t2. Desktop
+\t0. Exit
+'''
+        while True:
+            print(menu)
+            option = input('Choose your chassis type: ')
+            if option == '0':
+                exit()
+            elif option == '1':
+                chassis = 'Notebook'
+                break
+            elif option == '2':
+                chassis = 'Desktop'
+                break
+            else:
+                print('Try again!\n')
+    return chassis
+
+
+def apt_install(softlist):
+    """Install software with apt."""
+    cache = apt.Cache()
+    cache.update()
+    not_found = ''
+    for soft in softlist:
+        try:
+            pkg = cache[soft]
+        except KeyError:
+            not_found += ' {0}'.format(soft)
+            continue
+        if not pkg.is_installed:
+            pkg.mark_install()
+    try:
+        cache.commit()
+    except:
+        print('\nERROR: Failed to install software\n')
+    cache.close()
+    if len(not_found) > 0:
+        print('\nWARNING: Package not found:{0}'.format(not_found))
+
+
 def install_software(chassis):
     """Install default software."""
     cache = apt.Cache()
@@ -348,79 +421,6 @@ Time left: ${alignr}${battery_time}
         f.write(']];\n')
     os.chown(conky_config, username['uid'], username['uid'])
     print('Done')
-
-
-def apt_install(softlist):
-    """Install software with apt."""
-    cache = apt.Cache()
-    cache.update()
-    not_found = ''
-    for soft in softlist:
-        try:
-            pkg = cache[soft]
-        except KeyError:
-            not_found += ' {0}'.format(soft)
-            continue
-        if not pkg.is_installed:
-            pkg.mark_install()
-    try:
-        cache.commit()
-    except:
-        print('\nERROR: Failed to install software\n')
-    cache.close()
-    if len(not_found) > 0:
-        print('\nWARNING: Package not found:{0}'.format(not_found))
-
-
-def get_username():
-    """Get login and uid for user."""
-    login = 'aristarkh'
-    option = input('Your login is {0}? (Y/n) '.format(login))
-    while True:
-        if option == 'y' or option == '':
-            try:
-                uid = getpwnam(login).pw_uid
-            except KeyError:
-                print('ERROR: Login not found\n')
-                option = 'n'
-            else:
-                break
-        else:
-            login = input('Please, enter your login: ')
-            option = 'y'
-
-    username = {'login': login, 'uid': uid}
-    return username
-
-
-def get_chassis():
-    """Define chassis type of computer."""
-    chassis = subprocess.check_output(
-        'dmidecode -s chassis-type',
-        shell=True,
-        universal_newlines=True)
-    chassis = chassis.split('\n')[0]
-    if chassis != 'Desktop' and chassis != 'Notebook':
-        menu = '''
-\t*** Chassis type ***\n
-\t1. Notebook
-\t2. Desktop
-\t0. Exit
-'''
-        while True:
-            print(menu)
-            option = input('Choose your chassis type: ')
-            if option == '0':
-                exit()
-            elif option == '1':
-                chassis = 'Notebook'
-                break
-            elif option == '2':
-                chassis = 'Desktop'
-                break
-            else:
-                print('Try again!\n')
-    return chassis
 
 
 def main_menu(username, chassis):
