@@ -15,9 +15,9 @@ from pwd import getpwnam
 from getpass import getpass
 
 
-soft_common = ['ttf-mscorefonts-installer', 'mc', 'vim', 'vlc', 'keepassx']
-soft_gtk = ['network-manager-vpnc-gnome', 'remmina-plugin-rdp']
-soft_kde = ['network-manager-vpnc', 'krdc']
+softlist = ['ttf-mscorefonts-installer', 'mc', 'vim', 'vlc', 'keepassx']
+softlist_gtk = ['network-manager-vpnc-gnome', 'remmina-plugin-rdp']
+softlist_kde = ['network-manager-vpnc', 'krdc']
 shares = ['public', 'Data', 'Multimedia']
 brightness = 70
 
@@ -103,13 +103,13 @@ def install_software(chassis):
     """Install default software."""
     cache = apt.Cache()
     if cache['kdelibs-bin'].is_installed:
-        softlist = soft_common + soft_kde
+        softlist.extend(softlist_kde)
     else:
-        softlist = soft_common + soft_gtk
+        softlist.extend(softlist_gtk)
     cache.close()
     if chassis == 'Notebook':
-        soft_note = ['tlp', 'tlp-rdw', 'powertop', 'xbacklight']
-        softlist += soft_note
+        softlist_note = ['tlp', 'tlp-rdw', 'powertop', 'xbacklight']
+        softlist.extend(softlist_note)
     apt_install(softlist)
     print('Done')
 
@@ -267,19 +267,19 @@ def setup_brightness():
     """Setup startup brightness for laptop."""
     rclocal = '/etc/rc.local'
     softlist = ['xbacklight']
-    command = 'xbacklight -set {0}'.format(brightness)
+    command = 'xbacklight -set {0}\n'.format(brightness)
     apt_install(softlist)
     with open(rclocal, 'r+') as f:
         text = []
         insert_needed = True
         for line in f:
             if line.startswith('xbacklight'):
-                text += [command + '\n']
+                text.append(command)
                 insert_needed = False
             else:
-                text += [line]
+                text.append(line)
         if insert_needed is True:
-                text.insert(-1, command + '\n')
+                text.insert(-1, command)
         f.seek(0)
         f.writelines(text)
     print('Done')
@@ -290,8 +290,9 @@ def setup_conky(user, chassis):
     conky_config = '/home/{0}/.conkyrc'.format(user[0])
     apt_install(['conky'])
     if os.path.exists(conky_config):
-        shutil.copyfile(conky_config, conky_config + '.bak')
-        os.chown(conky_config + '.bak', user[1], user[1])
+        bak_file = '{0}.bak'.format(conky_config)
+        shutil.copyfile(conky_config, bak_file)
+        os.chown(bak_file, user[1], user[1])
     network_devices = os.listdir('/sys/class/net')
     network_devices.remove('lo')
     if len(network_devices) < 2:
