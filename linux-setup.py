@@ -360,10 +360,8 @@ Date: ${{alignr}}${{time %d.%m.%Y}}
 Local: ${{alignr}}${{time %H:%M}}
 Moscow: ${{alignr}}${{tztime Europe/Moscow %H:%M}}
 '''.format(*network_devices)
-    with open(conky_config, 'w') as f:
-        f.write(text)
     if chassis == 'Notebook':
-        text = '''\
+        text += '''\
 ${hr}
 ${font Noto Sans [monotype]:bold:size=12}${color0}Battery${font}${color}
 Power Rate: ${alignr}\
@@ -372,10 +370,9 @@ awk '{a=$1/1000000; print a}'} W
 Charge: ${alignr}${battery}
 Time left: ${alignr}${battery_time}
 '''
-        with open(conky_config, 'a') as f:
-            f.write(text)
-    with open(conky_config, 'a') as f:
-        f.write(']];\n')
+    text += ']];\n'
+    with open(conky_config, 'w') as f:
+        f.write(text)
     os.chown(conky_config, user[1], user[1])
     print('Done')
 
