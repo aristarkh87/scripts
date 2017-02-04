@@ -15,10 +15,10 @@ from pwd import getpwnam
 from getpass import getpass
 
 
-softlist = ['ttf-mscorefonts-installer', 'mc', 'vim', 'vlc', 'keepassx']
-softlist_gtk = ['network-manager-vpnc-gnome', 'remmina-plugin-rdp']
-softlist_kde = ['network-manager-vpnc', 'krdc']
-shares = ['public', 'Data', 'Multimedia']
+softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'vlc', 'keepassx')
+softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
+softlist_kde = ('network-manager-vpnc', 'krdc')
+shares = ('public', 'Data', 'Multimedia')
 brightness = 70
 
 
@@ -62,7 +62,7 @@ def get_chassis():
         while True:
             for line in menu:
                 print(line)
-            option = input('Choose your chassis type: ')
+            option = input('Select your chassis type: ')
             if option == '0':
                 exit()
             elif option == '1':
@@ -72,7 +72,7 @@ def get_chassis():
                 chassis = 'Desktop'
                 break
             else:
-                print('Try again!\n')
+                print('Select the correct number!')
     return chassis
 
 
@@ -80,6 +80,8 @@ def apt_install(softlist):
     """Install software with apt."""
     cache = apt.Cache()
     not_found = []
+    if type(softlist) == str:
+        softlist = tuple(softlist.split(' '))
     for soft in softlist:
         try:
             pkg = cache[soft]
@@ -103,13 +105,13 @@ def install_software(chassis):
     """Install default software."""
     cache = apt.Cache()
     if cache['kdelibs-bin'].is_installed:
-        softlist.extend(softlist_kde)
+        softlist = softlist_common + softlist_kde
     else:
-        softlist.extend(softlist_gtk)
+        softlist = softlist_common + softlist_gtk
     cache.close()
     if chassis == 'Notebook':
-        softlist_note = ['tlp', 'tlp-rdw', 'powertop', 'xbacklight']
-        softlist.extend(softlist_note)
+        softlist_note = ('tlp', 'tlp-rdw', 'powertop', 'xbacklight')
+        softlist += softlist_note
     apt_install(softlist)
     print('Done')
 
@@ -122,7 +124,7 @@ def setup_firewall():
     script_iptables6 = '{0}/iptables6.sh'.format(script_dir)
     localnet4 = '192.168.10.0/24'
     localnet6 = '2a02:17d0:1b0:d700::/64'
-    apt_install(['iptables-persistent'])
+    apt_install('iptables-persistent')
     print('Creating script {0}...'.format(script_iptables4))
     text = '''\
 #!/bin/bash
@@ -201,7 +203,7 @@ ${{iptables6}}-save > /etc/iptables/rules.v6
 
 def setup_mounts(user):
     """Install autofs and setup mounts."""
-    softlist = ['autofs', 'cifs-utils']
+    softlist = ('autofs', 'cifs-utils')
     nas_name = 'a-nas'
     nas_domain = 'aristarkh.net'
     nas_fqdn = '{0}.{1}'.format(nas_name, nas_domain)
@@ -266,9 +268,8 @@ def setup_grub():
 def setup_brightness():
     """Setup startup brightness for laptop."""
     rclocal = '/etc/rc.local'
-    softlist = ['xbacklight']
     command = 'xbacklight -set {0}\n'.format(brightness)
-    apt_install(softlist)
+    apt_install('xbacklight')
     with open(rclocal, 'r+') as f:
         text = []
         insert_needed = True
@@ -288,7 +289,7 @@ def setup_brightness():
 def setup_conky(user, chassis):
     """Install and setup conky."""
     conky_config = '/home/{0}/.conkyrc'.format(user[0])
-    apt_install(['conky'])
+    apt_install('conky')
     if os.path.exists(conky_config):
         bak_file = '{0}.bak'.format(conky_config)
         shutil.copyfile(conky_config, bak_file)
@@ -391,7 +392,7 @@ def main_menu(user, chassis):
     while True:
         for line in menu:
             print(line)
-        option = input('Choose action: ')
+        option = input('Select an action: ')
         if option == '0':
             exit()
         elif option == '1':
@@ -406,6 +407,8 @@ def main_menu(user, chassis):
             setup_brightness()
         elif option == '6':
             setup_conky(user, chassis)
+        else:
+            print('Select the correct number!')
 
 
 def main():
