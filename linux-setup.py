@@ -81,7 +81,7 @@ def apt_install(softlist):
     cache = apt.Cache()
     not_found = []
     if type(softlist) == str:
-        softlist = tuple(softlist.split(' '))
+        softlist = softlist.split(' ')
     for soft in softlist:
         try:
             pkg = cache[soft]
