@@ -8,7 +8,7 @@ cat << EOF >> "${smb_config}"
 [Misc$]
     path = /windows/misc
     read only = no
-    guest ok = yes,
+    guest ok = yes
 [Misc]
     comment = Misc
     path = /windows/misc/Misc
