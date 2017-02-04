@@ -55,14 +55,13 @@ def get_chassis():
                                       universal_newlines=True)
     chassis = chassis.split('\n')[0]
     if chassis != 'Desktop' and chassis != 'Notebook':
-        menu = '''
-\t*** Chassis type ***\n
-\t1. Notebook
-\t2. Desktop
-\t0. Exit
-'''
+        menu = ('\n\t*** Chassis type ***\n',
+                '\t1. Notebook',
+                '\t2. Desktop',
+                '\t0. Exit\n')
         while True:
-            print(menu)
+            for line in menu:
+                print(line)
             option = input('Choose your chassis type: ')
             if option == '0':
                 exit()
@@ -211,8 +210,8 @@ def setup_mounts(user):
     secret_file = '/home/{0}/.{1}'.format(user[0], nas_name)
     print('Setting up {0} mounts...'.format(nas_name))
     password = getpass(prompt='Enter the password to {0}: '.format(nas_name))
-    text = ['username={0}\n'.format(user[0]),
-            'password={0}\n'.format(password)]
+    text = ('username={0}\n'.format(user[0]),
+            'password={0}\n'.format(password))
     with open(secret_file, 'w') as f:
         f.writelines(text)
     os.chown(secret_file, user[1], user[1])
@@ -383,18 +382,17 @@ Time left: ${alignr}${battery_time}
 
 def main_menu(user, chassis):
     """Main menu."""
-    menu = '''
-\t*** Main menu ***\n
-\t1. Install software
-\t2. Setup firewall
-\t3. Setup mounts
-\t4. Setup GRUB
-\t5. Setup brightness
-\t6. Setup Conky
-\t0. Exit
-'''
+    menu = ('\n\t*** Main menu ***\n',
+            '\t1. Install software',
+            '\t2. Setup firewall',
+            '\t3. Setup mounts',
+            '\t4. Setup GRUB',
+            '\t5. Setup brightness',
+            '\t6. Setup Conky',
+            '\t0. Exit\n')
     while True:
-        print(menu)
+        for line in menu:
+            print(line)
         option = input('Choose action: ')
         if option == '0':
             exit()
