@@ -9,9 +9,9 @@
 import apt
 import os
 import os.path
+import pwd
 import shutil
 import subprocess
-from pwd import getpwnam
 from getpass import getpass
 
 
@@ -31,12 +31,13 @@ def is_root():
 
 def get_username():
     """Get login and uid for user. Return tuple (login, uid)."""
-    login = 'aristarkh'
+    uid = 1000
+    login = pwd.getpwuid(uid).pw_name
     option = input('Your login is {0}? (Y/n) '.format(login))
     while True:
         if option == 'y' or option == '':
             try:
-                uid = getpwnam(login).pw_uid
+                uid = pwd.getpwnam(login).pw_uid
             except KeyError:
                 print('ERROR: Login not found\n')
                 option = 'n'
@@ -211,8 +212,9 @@ def setup_mounts(user, shares):
     mount_directory_home = '/home/{0}/{1}'.format(user[0], nas_name)
     secret_file = '/home/{0}/.{1}'.format(user[0], nas_name)
     print('Setting up {0} mounts...'.format(nas_name))
-    password = getpass(prompt='Enter the password to {0}: '.format(nas_name))
-    text = ('username={0}\n'.format(user[0]),
+    username = input('Please, enter your login for {}: '.format(nas_name))
+    password = getpass(prompt='Enter the password for {0}: '.format(nas_name))
+    text = ('username={0}\n'.format(username),
             'password={0}\n'.format(password))
     with open(secret_file, 'w') as f:
         f.writelines(text)
