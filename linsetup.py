@@ -29,52 +29,59 @@ def is_root():
              'Please try again, this time using "sudo". Exiting. ')
 
 
-def get_username():
-    """Get login and uid for user. Return tuple (login, uid)."""
-    uid = 1000
-    login = pwd.getpwuid(uid).pw_name
-    option = input('Your login is {0}? (Y/n) '.format(login))
-    while True:
-        if option == 'y' or option == '':
-            try:
-                uid = pwd.getpwnam(login).pw_uid
-            except KeyError:
-                print('ERROR: Login not found\n')
-                option = 'n'
-            else:
-                break
-        else:
-            login = input('Please, enter your login: ')
-            option = 'y'
-    return login, uid
+class GetInfo():
+    """Get login, uid and chassis type."""
 
+    def __init__(self):
+        """Init for class."""
+        self.login, self.uid = self.get_userinfo()
+        self.chassis = self.get_chassis()
 
-def get_chassis():
-    """Get chassis type of computer. Return string 'Notebook' or 'Desktop'."""
-    chassis = subprocess.check_output('dmidecode -s chassis-type',
-                                      shell=True,
-                                      universal_newlines=True)
-    chassis = chassis.split('\n')[0]
-    if chassis != 'Desktop' and chassis != 'Notebook':
-        menu = ('\n\t*** Chassis type ***\n',
-                '\t1. Notebook',
-                '\t2. Desktop',
-                '\t0. Exit\n')
+    def get_userinfo(self):
+        """Get login and uid for user."""
+        self.uid = 1000
+        self.login = pwd.getpwuid(self.uid).pw_name
+        option = input('Your login is {0}? (Y/n) '.format(self.login))
         while True:
-            for line in menu:
-                print(line)
-            option = input('Select your chassis type: ')
-            if option == '0':
-                exit()
-            elif option == '1':
-                chassis = 'Notebook'
-                break
-            elif option == '2':
-                chassis = 'Desktop'
-                break
+            if option == 'y' or option == '':
+                try:
+                    self.uid = pwd.getpwnam(self.login).pw_uid
+                except KeyError:
+                    print('ERROR: Login not found\n')
+                    option = 'n'
+                else:
+                    break
             else:
-                print('Select the correct number!')
-    return chassis
+                self.login = input('Please, enter your login: ')
+                option = 'y'
+        return self.login, self.uid
+
+    def get_chassis(self):
+        """Get chassis type of computer."""
+        self.chassis = subprocess.check_output('dmidecode -s chassis-type',
+                                               shell=True,
+                                               universal_newlines=True)
+        self.chassis = self.chassis.split('\n')[0]
+        if self.chassis != 'Desktop' and self.chassis != 'Notebook':
+            menu = ('\n\t*** Chassis type ***\n',
+                    '\t1. Notebook',
+                    '\t2. Desktop',
+                    '\t0. Exit\n')
+            while True:
+                for line in menu:
+                    print(line)
+                option = input('Select your chassis type: ')
+                if option == '0':
+                    exit()
+                elif option == '1':
+                    self.chassis = 'Notebook'
+                    break
+                elif option == '2':
+                    self.chassis = 'Desktop'
+                    break
+                else:
+                    print('Select the correct number!')
+        return self.chassis
 
 
 def apt_install(softlist):
@@ -417,8 +424,9 @@ def main_menu(user, chassis):
 def main():
     """Main function."""
     is_root()
-    user = get_username()
-    chassis = get_chassis()
+    userinfo = GetInfo()
+    user = userinfo.login, userinfo.uid
+    chassis = userinfo.chassis
     main_menu(user, chassis)
 
 
