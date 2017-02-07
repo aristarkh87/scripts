@@ -29,13 +29,13 @@ def is_root():
              'Please try again, this time using "sudo". Exiting. ')
 
 
-class GetInfo():
+class GetInfo:
     """Get login, uid and chassis type."""
 
     def __init__(self):
         """Init for class."""
-        self.login, self.uid = self.get_userinfo()
-        self.chassis = self.get_chassis()
+        self.get_userinfo()
+        self.get_chassis()
 
     def get_userinfo(self):
         """Get login and uid for user."""

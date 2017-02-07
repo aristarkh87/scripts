@@ -433,6 +433,6 @@ main() {
     main_menu
 }
 
-main()
+main
 
 exit 0
