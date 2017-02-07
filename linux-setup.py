@@ -101,7 +101,7 @@ def apt_install(softlist):
         print('WARNING: Package not found: {0}'.format(not_found))
 
 
-def install_software(chassis):
+def install_software(chassis, softlist_common, softlist_gtk, softlist_kde):
     """Install default software."""
     cache = apt.Cache()
     if cache['kdelibs-bin'].is_installed:
@@ -201,7 +201,7 @@ ${{iptables6}}-save > /etc/iptables/rules.v6
     print('Done')
 
 
-def setup_mounts(user):
+def setup_mounts(user, shares):
     """Install autofs and setup mounts."""
     softlist = ('autofs', 'cifs-utils')
     nas_name = 'a-nas'
@@ -265,7 +265,7 @@ def setup_grub():
     print('Done')
 
 
-def setup_brightness():
+def setup_brightness(brightness):
     """Setup startup brightness for laptop."""
     rclocal = '/etc/rc.local'
     command = 'xbacklight -set {0}\n'.format(brightness)
@@ -396,15 +396,16 @@ def main_menu(user, chassis):
         if option == '0':
             exit()
         elif option == '1':
-            install_software(chassis)
+            install_software(chassis, softlist_common,
+                             softlist_gtk, softlist_kde)
         elif option == '2':
             setup_firewall()
         elif option == '3':
-            setup_mounts(user)
+            setup_mounts(user, shares)
         elif option == '4':
             setup_grub()
         elif option == '5':
-            setup_brightness()
+            setup_brightness(brightness)
         elif option == '6':
             setup_conky(user, chassis)
         else:
