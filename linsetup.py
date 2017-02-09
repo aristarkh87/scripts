@@ -15,13 +15,6 @@ import subprocess
 from getpass import getpass
 
 
-softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'vlc', 'keepassx')
-softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
-softlist_kde = ('network-manager-vpnc', 'krdc')
-shares = ('public', 'Data', 'Multimedia')
-brightness = 70
-
-
 def is_root():
     """Require run the script as root."""
     if os.getuid() != 0:
@@ -41,6 +34,7 @@ class GetInfo:
         """Get login and uid for user."""
         self.uid = 1000
         self.login = pwd.getpwuid(self.uid).pw_name
+
         option = input('Your login is {0}? (Y/n) '.format(self.login))
         while True:
             if option == 'y' or option == '':
@@ -62,6 +56,7 @@ class GetInfo:
                                                shell=True,
                                                universal_newlines=True)
         self.chassis = self.chassis.split('\n')[0]
+
         if self.chassis != 'Desktop' and self.chassis != 'Notebook':
             menu = ('\n\t*** Chassis type ***\n',
                     '\t1. Notebook',
@@ -109,8 +104,13 @@ def apt_install(softlist):
         print('WARNING: Package not found:', not_found)
 
 
-def install_software(chassis, softlist_common, softlist_gtk, softlist_kde):
+def install_software():
     """Install default software."""
+    softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'vlc',
+                       'keepassx')
+    softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
+    softlist_kde = ('network-manager-vpnc', 'krdc')
+
     cache = apt.Cache()
     if cache['kdelibs-bin'].is_installed:
         softlist = softlist_common + softlist_kde
@@ -127,11 +127,12 @@ def install_software(chassis, softlist_common, softlist_gtk, softlist_kde):
 def setup_firewall():
     """Install and setup netfilter-persistent."""
     script_dir = '/usr/local/scripts'
-    os.makedirs(script_dir, exist_ok=True)
     script_iptables4 = '{0}/iptables4.sh'.format(script_dir)
     script_iptables6 = '{0}/iptables6.sh'.format(script_dir)
     localnet4 = '192.168.10.0/24'
     localnet6 = '2a02:17d0:1b0:d700::/64'
+
+    os.makedirs(script_dir, exist_ok=True)
     apt_install('iptables-persistent')
     print('Creating script', script_iptables4)
     text = '''\
@@ -209,15 +210,17 @@ ${{iptables6}}-save > /etc/iptables/rules.v6
     print('Done')
 
 
-def setup_mounts(user, shares):
+def setup_mounts():
     """Install autofs and setup mounts."""
+    shares = ('public', 'Data', 'Multimedia')
     softlist = ('autofs', 'cifs-utils')
     nas_name = 'a-nas'
     nas_domain = 'aristarkh.net'
     nas_fqdn = '{0}.{1}'.format(nas_name, nas_domain)
     mount_directory = '/{0}'.format(nas_name)
-    mount_directory_home = '/home/{0}/{1}'.format(user[0], nas_name)
-    secret_file = '/home/{0}/.{1}'.format(user[0], nas_name)
+    mount_directory_home = '/home/{0}/{1}'.format(login, nas_name)
+    secret_file = '/home/{0}/.{1}'.format(login, nas_name)
+
     print('Setting up {0} mounts'.format(nas_name))
     username = input('Please, enter your login for {}: '.format(nas_name))
     password = getpass(prompt='Enter the password for {0}: '.format(nas_name))
@@ -225,18 +228,18 @@ def setup_mounts(user, shares):
             'password={0}\n'.format(password))
     with open(secret_file, 'w') as f:
         f.writelines(text)
-    os.chown(secret_file, user[1], user[1])
+    os.chown(secret_file, uid, uid)
     os.chmod(secret_file, 0o600)
     apt_install(softlist)
     os.makedirs(mount_directory, exist_ok=True)
     os.makedirs(mount_directory_home, exist_ok=True)
-    os.chown(mount_directory_home, user[1], user[1])
+    os.chown(mount_directory_home, uid, uid)
     if os.path.exists('/etc/auto.{0}'.format(nas_name)):
         os.remove('/etc/auto.{0}'.format(nas_name))
     for share in shares:
         mount_opts = '{0} -fstype=cifs,rw,credentials={1},uid={2},'\
                      'iocharset=utf8 ://{3}/{0}\n'
-        mount_opts = mount_opts.format(share, secret_file, user[1], nas_fqdn)
+        mount_opts = mount_opts.format(share, secret_file, uid, nas_fqdn)
         with open('/etc/auto.{0}'.format(nas_name), 'a') as f:
             f.write(mount_opts)
             if not os.path.exists(
@@ -261,6 +264,7 @@ def setup_grub():
     """Enable savedefault option in GRUB config."""
     grub_config = '/etc/default/grub'
     bak_file = '{0}.bak'.format(grub_config)
+
     if not os.path.exists(bak_file):
         shutil.copyfile(grub_config, bak_file)
     with open(grub_config, 'w') as f:
@@ -276,8 +280,10 @@ def setup_grub():
 
 def setup_brightness(brightness):
     """Setup startup brightness for laptop."""
+    brightness = 70
     rclocal = '/etc/rc.local'
     command = 'xbacklight -set {0}\n'.format(brightness)
+
     apt_install('xbacklight')
     with open(rclocal, 'r+') as f:
         text = []
@@ -295,14 +301,15 @@ def setup_brightness(brightness):
     print('Done')
 
 
-def setup_conky(user, chassis):
+def setup_conky():
     """Install and setup conky."""
-    conky_config = '/home/{0}/.conkyrc'.format(user[0])
+    conky_config = '/home/{0}/.conkyrc'.format(login)
+
     apt_install('conky')
     if os.path.exists(conky_config):
         bak_file = '{0}.bak'.format(conky_config)
         shutil.copyfile(conky_config, bak_file)
-        os.chown(bak_file, user[1], user[1])
+        os.chown(bak_file, uid, uid)
     network_devices = os.listdir('/sys/class/net')
     network_devices.remove('lo')
     if len(network_devices) < 2:
@@ -384,11 +391,11 @@ Time left: ${alignr}${battery_time}
     text += ']];\n'
     with open(conky_config, 'w') as f:
         f.write(text)
-    os.chown(conky_config, user[1], user[1])
+    os.chown(conky_config, uid, uid)
     print('Done')
 
 
-def main_menu(user, chassis):
+def main_menu():
     """Main menu."""
     menu = ('\n\t*** Main menu ***\n',
             '\t1. Install software',
@@ -405,18 +412,17 @@ def main_menu(user, chassis):
         if option == '0':
             exit()
         elif option == '1':
-            install_software(chassis, softlist_common,
-                             softlist_gtk, softlist_kde)
+            install_software()
         elif option == '2':
             setup_firewall()
         elif option == '3':
-            setup_mounts(user, shares)
+            setup_mounts()
         elif option == '4':
             setup_grub()
         elif option == '5':
-            setup_brightness(brightness)
+            setup_brightness()
         elif option == '6':
-            setup_conky(user, chassis)
+            setup_conky()
         else:
             print('Select the correct number!')
 
@@ -424,10 +430,14 @@ def main_menu(user, chassis):
 def main():
     """Main function."""
     is_root()
-    userinfo = GetInfo()
-    user = userinfo.login, userinfo.uid
-    chassis = userinfo.chassis
-    main_menu(user, chassis)
+    get_info = GetInfo()
+    global login
+    global uid
+    global chassis
+    login = get_info.login
+    uid = get_info.uid
+    chassis = get_info.chassis
+    main_menu()
 
 
 if __name__ == '__main__':
