@@ -216,13 +216,13 @@ def setup_mounts():
     softlist = ('autofs', 'cifs-utils')
     nas_name = 'a-nas'
     nas_domain = 'aristarkh.net'
-    nas_fqdn = '{0}.{1}'.format(nas_name, nas_domain)
+    nas_fqdn = '.'.join((nas_name, nas_domain))
     mount_directory = '/{0}'.format(nas_name)
     mount_directory_home = '/home/{0}/{1}'.format(login, nas_name)
     secret_file = '/home/{0}/.{1}'.format(login, nas_name)
 
     print('Setting up {0} mounts'.format(nas_name))
-    username = input('Please, enter your login for {}: '.format(nas_name))
+    username = input('Please, enter your login for {0}: '.format(nas_name))
     password = getpass(prompt='Enter the password for {0}: '.format(nas_name))
     text = ('username={0}\n'.format(username),
             'password={0}\n'.format(password))
@@ -263,7 +263,7 @@ def setup_mounts():
 def setup_grub():
     """Enable savedefault option in GRUB config."""
     grub_config = '/etc/default/grub'
-    bak_file = '{0}.bak'.format(grub_config)
+    bak_file = '.'.join((grub_config, 'bak'))
 
     if not os.path.exists(bak_file):
         shutil.copyfile(grub_config, bak_file)
@@ -307,7 +307,7 @@ def setup_conky():
 
     apt_install('conky')
     if os.path.exists(conky_config):
-        bak_file = '{0}.bak'.format(conky_config)
+        bak_file = '.'.join((conky_config, 'bak'))
         shutil.copyfile(conky_config, bak_file)
         os.chown(bak_file, uid, uid)
     network_devices = os.listdir('/sys/class/net')
