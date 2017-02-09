@@ -102,11 +102,11 @@ def apt_install(softlist):
             cache.update()
             cache.commit()
         except Exception as e:
-            print('ERROR: {0}'.format(e))
+            print('ERROR:', e)
     cache.close()
     if len(not_found) > 0:
         not_found = ', '.join(not_found)
-        print('WARNING: Package not found: {0}'.format(not_found))
+        print('WARNING: Package not found:', not_found)
 
 
 def install_software(chassis, softlist_common, softlist_gtk, softlist_kde):
@@ -133,7 +133,7 @@ def setup_firewall():
     localnet4 = '192.168.10.0/24'
     localnet6 = '2a02:17d0:1b0:d700::/64'
     apt_install('iptables-persistent')
-    print('Creating script {0}...'.format(script_iptables4))
+    print('Creating script', script_iptables4)
     text = '''\
 #!/bin/bash
 
@@ -172,7 +172,7 @@ ${{iptables}}-save > /etc/iptables/rules.v4
     subprocess.call(script_iptables4)
     print('Done')
 
-    print('Creating script {0}...'.format(script_iptables6))
+    print('Creating script', script_iptables6)
     text = '''\
 #!/bin/bash
 
@@ -218,7 +218,7 @@ def setup_mounts(user, shares):
     mount_directory = '/{0}'.format(nas_name)
     mount_directory_home = '/home/{0}/{1}'.format(user[0], nas_name)
     secret_file = '/home/{0}/.{1}'.format(user[0], nas_name)
-    print('Setting up {0} mounts...'.format(nas_name))
+    print('Setting up {0} mounts'.format(nas_name))
     username = input('Please, enter your login for {}: '.format(nas_name))
     password = getpass(prompt='Enter the password for {0}: '.format(nas_name))
     text = ('username={0}\n'.format(username),
@@ -248,7 +248,7 @@ def setup_mounts(user, shares):
     if os.path.exists('/etc/auto.master.d/{0}.autofs'.format(nas_name)):
         os.remove('/etc/auto.master.d/{0}.autofs'.format(nas_name))
     print('Creating config file '
-          '/etc/auto.master.d/{0}.autofs...'.format(nas_name))
+          '/etc/auto.master.d/{0}.autofs'.format(nas_name))
     nas_mount = '{0} /etc/auto.{1} --timeout=30 --ghost'
     nas_mount = nas_mount.format(mount_directory, nas_name)
     with open('/etc/auto.master.d/{0}.autofs'.format(nas_name), 'w') as f:
