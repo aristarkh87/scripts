@@ -278,7 +278,7 @@ def setup_grub():
     print('Done')
 
 
-def setup_brightness(brightness):
+def setup_brightness():
     """Setup startup brightness for laptop."""
     brightness = 70
     rclocal = '/etc/rc.local'
