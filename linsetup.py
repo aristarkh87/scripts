@@ -223,6 +223,8 @@ def setup_mounts():
 
     print('Setting up {0} mounts'.format(nas_name))
     username = input('Please, enter your login for {0}: '.format(nas_name))
+    if username == '':
+        username = login
     password = getpass(prompt='Enter the password for {0}: '.format(nas_name))
     text = ('username={0}\n'.format(username),
             'password={0}\n'.format(password))
