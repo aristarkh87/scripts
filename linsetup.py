@@ -210,7 +210,7 @@ ${{iptables6}}-save > /etc/iptables/rules.v6
     print('Done')
 
 
-def setup_mounts():
+def setup_autofs():
     """Install autofs and setup mounts."""
     shares = ('public', 'Data', 'Multimedia')
     softlist = ('autofs', 'cifs-utils')
@@ -222,7 +222,8 @@ def setup_mounts():
     secret_file = '/home/{0}/.{1}'.format(login, nas_name)
 
     print('Setting up {0} mounts'.format(nas_name))
-    username = input('Please, enter your login for {0}: '.format(nas_name))
+    username = input(
+        'Please, enter your login for {0} [{1}]: '.format(nas_name, login))
     if username == '':
         username = login
     password = getpass(prompt='Enter the password for {0}: '.format(nas_name))
@@ -402,7 +403,7 @@ def main_menu():
     menu = ('\n\t*** Main menu ***\n',
             '\t1. Install software',
             '\t2. Setup firewall',
-            '\t3. Setup mounts',
+            '\t3. Setup automount',
             '\t4. Setup GRUB',
             '\t5. Setup brightness',
             '\t6. Setup Conky',
@@ -418,7 +419,7 @@ def main_menu():
         elif option == '2':
             setup_firewall()
         elif option == '3':
-            setup_mounts()
+            setup_autofs()
         elif option == '4':
             setup_grub()
         elif option == '5':
