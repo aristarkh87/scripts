@@ -27,27 +27,23 @@ class GetInfo:
 
     def __init__(self):
         """Init for class."""
-        self.get_userinfo()
+        self.get_user()
         self.get_chassis()
 
-    def get_userinfo(self):
+    def get_user(self):
         """Get login and uid for user."""
-        self.uid = 1000
-        self.login = pwd.getpwuid(self.uid).pw_name
-
-        option = input('Your login is {0}? (Y/n) '.format(self.login))
-        while True:
-            if option == 'y' or option == '':
+        self.login = 'aristarkh'
+        try:
+            self.uid = pwd.getpwnam(self.login).pw_uid
+        except KeyError:
+            while True:
+                self.login = input('Enter your login: ')
                 try:
                     self.uid = pwd.getpwnam(self.login).pw_uid
                 except KeyError:
                     print('ERROR: Login not found\n')
-                    option = 'n'
                 else:
                     break
-            else:
-                self.login = input('Please, enter your login: ')
-                option = 'y'
         return self.login, self.uid
 
     def get_chassis(self):
