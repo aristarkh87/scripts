@@ -280,23 +280,12 @@ def setup_grub():
 def setup_brightness():
     """Setup startup brightness for laptop."""
     brightness = 70
-    rclocal = '/etc/rc.local'
-    command = 'xbacklight -set {0}\n'.format(brightness)
+    brightness_file = '/etc/X11/Xsession.d/98brightness'
+    command = '/usr/bin/xbacklight -set {0}\n'.format(brightness)
 
     apt_install('xbacklight')
-    with open(rclocal, 'r+') as f:
-        text = []
-        insert_needed = True
-        for line in f:
-            if line.startswith('xbacklight'):
-                text.append(command)
-                insert_needed = False
-            else:
-                text.append(line)
-        if insert_needed is True:
-                text.insert(-1, command)
-        f.seek(0)
-        f.writelines(text)
+    with open(brightness_file, 'w') as f:
+        f.write(command)
     print('Done')
 
 
