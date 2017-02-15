@@ -100,6 +100,24 @@ def apt_install(softlist):
         print('WARNING: Package not found:', not_found)
 
 
+def setup_grub():
+    """Enable savedefault option in GRUB config."""
+    grub_config = '/etc/default/grub'
+    bak_file = '.'.join((grub_config, 'bak'))
+
+    if not os.path.exists(bak_file):
+        shutil.copyfile(grub_config, bak_file)
+    with open(grub_config, 'w') as f:
+        with open(bak_file) as temp_file:
+            for line in temp_file:
+                line = line.replace('GRUB_DEFAULT=0',
+                                    'GRUB_SAVEDEFAULT=true\n'
+                                    'GRUB_DEFAULT=saved')
+                f.write(line)
+    subprocess.call('update-grub')
+    print('Done')
+
+
 def install_software():
     """Install default software."""
     softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'vlc',
@@ -259,21 +277,48 @@ def setup_autofs():
     print('Done')
 
 
-def setup_grub():
-    """Enable savedefault option in GRUB config."""
-    grub_config = '/etc/default/grub'
-    bak_file = '.'.join((grub_config, 'bak'))
+def setup_vim():
+    """Install and setup VIM."""
+    vim_config = '/home/{0}/.vimrc'.format(login)
+    apt_install('vim')
+    if os.path.exists(vim_config):
+        bak_file = '.'.join((vim_config, 'bak'))
+        shutil.copyfile(vim_config, bak_file)
+        os.chown(bak_file, uid, uid)
+    text = '''\
+syntax on
 
-    if not os.path.exists(bak_file):
-        shutil.copyfile(grub_config, bak_file)
-    with open(grub_config, 'w') as f:
-        with open(bak_file) as temp_file:
-            for line in temp_file:
-                line = line.replace('GRUB_DEFAULT=0',
-                                    'GRUB_SAVEDEFAULT=true\n'
-                                    'GRUB_DEFAULT=saved')
-                f.write(line)
-    subprocess.call('update-grub')
+set nocompatible
+set encoding=utf-8
+set termencoding=utf-8
+set fileencodings=utf-8,cp1251,koi8-r,cp866
+
+set title
+set laststatus=2
+set statusline=%t\ %h%w%m%r[%{&ff},%{strlen(&fenc)?&fenc:'none'}]%y%=\
+%-14.(%c,%l/%L%)\ %P
+set wildmenu
+set showcmd
+
+set wrap
+set linebreak
+set showmatch
+set incsearch
+set autoread
+set listchars=eol:$,tab:>-,trail:.
+
+set shiftwidth=4
+set softtabstop=4
+set tabstop=4
+set expandtab
+set autoindent
+set smartindent
+'''
+    with open(vim_config, 'w') as f:
+        f.write(text)
+    os.chown(vim_config, uid, uid)
+    subprocess.call('update-alternatives --set editor /usr/bin/vim.basic',
+                    shell=True)
     print('Done')
 
 
@@ -386,12 +431,13 @@ Time left: ${alignr}${battery_time}
 def main_menu():
     """Main menu."""
     menu = ('\n\t*** Main menu ***\n',
-            '\t1. Install software',
-            '\t2. Setup firewall',
-            '\t3. Setup automount',
-            '\t4. Setup GRUB',
-            '\t5. Setup brightness',
-            '\t6. Setup Conky',
+            '\t1. Setup GRUB',
+            '\t2. Install software',
+            '\t3. Setup firewall',
+            '\t4. Setup automount',
+            '\t5. Setup VIM',
+            '\t6. Setup brightness',
+            '\t7. Setup Conky',
             '\t0. Exit\n')
     while True:
         for line in menu:
@@ -400,16 +446,18 @@ def main_menu():
         if option == '0':
             exit()
         elif option == '1':
-            install_software()
-        elif option == '2':
-            setup_firewall()
-        elif option == '3':
-            setup_autofs()
-        elif option == '4':
             setup_grub()
+        elif option == '2':
+            install_software()
+        elif option == '3':
+            setup_firewall()
+        elif option == '4':
+            setup_autofs()
         elif option == '5':
-            setup_brightness()
+            setup_vim()
         elif option == '6':
+            setup_brightness()
+        elif option == '7':
             setup_conky()
         else:
             print('Select the correct number!')
