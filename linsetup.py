@@ -311,8 +311,6 @@ set shiftwidth=4
 set softtabstop=4
 set tabstop=4
 set expandtab
-set autoindent
-set smartindent
 '''
     with open(vim_config, 'w') as f:
         f.write(text)
