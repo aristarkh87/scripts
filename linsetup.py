@@ -120,13 +120,13 @@ def setup_grub():
 
 def install_software():
     """Install default software."""
-    softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'vlc',
-                       'keepassx')
+    softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'htop',
+                       'vlc', 'keepassx')
     softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
-    softlist_kde = ('network-manager-vpnc', 'krdc')
+    softlist_kde = ('network-manager-vpnc', 'krdc', 'yakuake')
 
     cache = apt.Cache()
-    if cache['kdelibs-bin'].is_installed:
+    if cache['plasma-desktop'].is_installed:
         softlist = softlist_common + softlist_kde
     else:
         softlist = softlist_common + softlist_gtk
