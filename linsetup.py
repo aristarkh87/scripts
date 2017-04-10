@@ -124,15 +124,15 @@ def install_software():
                        'vlc', 'keepassx')
     softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
     softlist_kde = ('network-manager-vpnc', 'krdc', 'yakuake')
+    softlist_note = ('tlp', 'tlp-rdw', 'powertop', 'xbacklight')
 
     cache = apt.Cache()
     if cache['plasma-desktop'].is_installed:
         softlist = softlist_common + softlist_kde
-    else:
+    elif cache['network-manager-gnome'].is_installed:
         softlist = softlist_common + softlist_gtk
     cache.close()
     if chassis == 'Notebook':
-        softlist_note = ('tlp', 'tlp-rdw', 'powertop', 'xbacklight')
         softlist += softlist_note
     apt_install(softlist)
     print('Done')
