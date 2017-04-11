@@ -486,7 +486,6 @@ def main_menu(params):
 
 def main():
     """Main function."""
-    is_root()
     get_info = GetInfo()
     params = {'login': get_info.login,
               'uid': get_info.uid,
@@ -496,4 +495,5 @@ def main():
 
 
 if __name__ == '__main__':
+    is_root()
     main()
