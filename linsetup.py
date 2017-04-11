@@ -152,34 +152,38 @@ def setup_firewall():
     text = '''\
 #!/bin/bash
 
-iptables=/sbin/iptables
+cmd=/sbin/iptables
 localnet=\'{0}\'
 
 # Flush rules
-${{iptables}} -F
+${{cmd}} -F
 
 # Default rules
-${{iptables}} -P INPUT DROP
-${{iptables}} -P OUTPUT ACCEPT
-${{iptables}} -P FORWARD DROP
+${{cmd}} -P INPUT DROP
+${{cmd}} -P OUTPUT ACCEPT
+${{cmd}} -P FORWARD DROP
 
 # General input rules
-${{iptables}} -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-${{iptables}} -A INPUT -i lo -j ACCEPT
-${{iptables}} -A INPUT -d 127.0.0.0/8 ! -i lo -j DROP
-${{iptables}} -A INPUT -p icmp -j ACCEPT
-${{iptables}} -A INPUT -d 239.0.0.0/8 -j ACCEPT
-
-# Allow INPUT for samba
-${{iptables}} -A INPUT -s ${{localnet}} \
--p udp -m multiport --ports 137,138 -j ACCEPT
-${{iptables}} -A INPUT -s ${{localnet}} \
--p tcp -m multiport --dports 139,445 -j ACCEPT
+${{cmd}} -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+${{cmd}} -A INPUT -i lo -j ACCEPT
+${{cmd}} -A INPUT -d 127.0.0.0/8 ! -i lo -j DROP
+${{cmd}} -A INPUT -p icmp -j ACCEPT
+${{cmd}} -A INPUT -d 239.0.0.0/8 -j ACCEPT
 
 # Allow SSH
-${{iptables}} -A INPUT -s ${{localnet}} -p tcp --dport 22 -j ACCEPT
+${{cmd}} -A INPUT -s ${{localnet}} -p tcp --dport 22 -j ACCEPT
 
-${{iptables}}-save > /etc/iptables/rules.v4
+# Allow KDE Connect
+${{cmd}} -A INPUT -s ${{localnet}} -p tcp --dport 1714:1764 -j ACCEPT
+${{cmd}} -A INPUT -s ${{localnet}} -p udp --dport 1714:1764 -j ACCEPT
+
+# Allow INPUT for samba
+${{cmd}} -A INPUT -s ${{localnet}} \
+-p udp -m multiport --ports 137,138 -j ACCEPT
+${{cmd}} -A INPUT -s ${{localnet}} \
+-p tcp -m multiport --dports 139,445 -j ACCEPT
+
+${{cmd}}-save > /etc/iptables/rules.v4
 '''.format(localnet4)
     with open(script_iptables4, 'w') as f:
         f.write(text)
@@ -191,31 +195,35 @@ ${{iptables}}-save > /etc/iptables/rules.v4
     text = '''\
 #!/bin/bash
 
-iptables6=/sbin/ip6tables
+cmd=/sbin/ip6tables
 localnet=\'{0}\'
 
 # Flush rules
-${{iptables6}} -F
+${{cmd}} -F
 
 # Default rules
-${{iptables6}} -P INPUT DROP
-${{iptables6}} -P OUTPUT ACCEPT
-${{iptables6}} -P FORWARD DROP
+${{cmd}} -P INPUT DROP
+${{cmd}} -P OUTPUT ACCEPT
+${{cmd}} -P FORWARD DROP
 
 # General input rules
-${{iptables6}} -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-${{iptables6}} -A INPUT -i lo -j ACCEPT
-${{iptables6}} -A INPUT -d ::1/128 ! -i lo -j DROP
-${{iptables6}} -A INPUT -p ipv6-icmp -j ACCEPT
-${{iptables6}} -A INPUT -d ff00::/8 -j ACCEPT
+${{cmd}} -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+${{cmd}} -A INPUT -i lo -j ACCEPT
+${{cmd}} -A INPUT -d ::1/128 ! -i lo -j DROP
+${{cmd}} -A INPUT -p ipv6-icmp -j ACCEPT
+${{cmd}} -A INPUT -d ff00::/8 -j ACCEPT
+
+# Allow KDE Connect
+${{cmd}} -A INPUT -s ${{localnet}} -p tcp --dport 1714:1764 -j ACCEPT
+${{cmd}} -A INPUT -s ${{localnet}} -p udp --dport 1714:1764 -j ACCEPT
 
 # Allow samba
-${{iptables6}} -A INPUT -s ${{localnet}} \
+${{cmd}} -A INPUT -s ${{localnet}} \
 -p udp -m multiport --ports 137,138 -j ACCEPT
-${{iptables6}} -A INPUT -s ${{localnet}} \
+${{cmd}} -A INPUT -s ${{localnet}} \
 -p tcp -m multiport --dports 139,445 -j ACCEPT
 
-${{iptables6}}-save > /etc/iptables/rules.v6
+${{cmd}}-save > /etc/iptables/rules.v6
 '''.format(localnet6)
     with open(script_iptables6, 'w') as f:
         f.write(text)
