@@ -56,10 +56,13 @@ class GetInfo:
 
     def get_chassis(self):
         """Get chassis type of computer."""
-        self.chassis = subprocess.check_output('dmidecode -s chassis-type',
-                                               shell=True,
-                                               universal_newlines=True)
-        self.chassis = self.chassis.split('\n')[0]
+        try:
+            self.chassis = subprocess.check_output('dmidecode -s chassis-type',
+                                                   shell=True,
+                                                   universal_newlines=True)
+            self.chassis = self.chassis.split('\n')[0]
+        except Exception:
+            self.chassis = 'None'
 
         if self.chassis != 'Desktop' and self.chassis != 'Notebook':
             menu = ('\n\t*** Chassis type ***\n',
@@ -81,7 +84,7 @@ class GetInfo:
                 else:
                     print('Select the correct number!')
         return self.chassis
-    
+
     def get_de(self):
         """Get DE type of computer."""
         cache = apt.Cache()
@@ -275,7 +278,8 @@ def setup_autofs(params):
     for share in shares:
         mount_opts = '{0} -fstype=cifs,rw,credentials={1},uid={2},'\
                      'iocharset=utf8 ://{3}/{0}\n'
-        mount_opts = mount_opts.format(share, secret_file, params['uid'], nas_fqdn)
+        mount_opts = mount_opts.format(share, secret_file,
+                                       params['uid'], nas_fqdn)
         with open('/etc/auto.{0}'.format(nas_name), 'a') as f:
             f.write(mount_opts)
             if not os.path.exists(
