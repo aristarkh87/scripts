@@ -15,6 +15,13 @@ import subprocess
 from getpass import getpass
 
 
+softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'htop',
+                   'vlc', 'keepassx')
+softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
+softlist_kde = ('network-manager-vpnc', 'krdc', 'yakuake')
+softlist_note = ('tlp', 'tlp-rdw', 'powertop', 'xbacklight')
+
+
 def is_root():
     """Require run the script as root."""
     if os.getuid() != 0:
@@ -29,6 +36,7 @@ class GetInfo:
         """Init for class."""
         self.get_user()
         self.get_chassis()
+        self.get_de()
 
     def get_user(self):
         """Get login and uid for user."""
@@ -73,6 +81,16 @@ class GetInfo:
                 else:
                     print('Select the correct number!')
         return self.chassis
+    
+    def get_de(self):
+        """Get DE type of computer."""
+        cache = apt.Cache()
+        if cache['plasma-desktop'].is_installed:
+            self.de = 'KDE'
+        elif cache['network-manager-gnome'].is_installed:
+            self.de = 'GTK'
+        cache.close()
+        return self.de
 
 
 def apt_install(softlist):
@@ -100,7 +118,7 @@ def apt_install(softlist):
         print('WARNING: Package not found:', not_found)
 
 
-def setup_grub():
+def setup_grub(params):
     """Enable savedefault option in GRUB config."""
     grub_config = '/etc/default/grub'
     bak_file = '.'.join((grub_config, 'bak'))
@@ -118,27 +136,19 @@ def setup_grub():
     print('Done')
 
 
-def install_software():
+def install_software(params):
     """Install default software."""
-    softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'htop',
-                       'vlc', 'keepassx')
-    softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
-    softlist_kde = ('network-manager-vpnc', 'krdc', 'yakuake')
-    softlist_note = ('tlp', 'tlp-rdw', 'powertop', 'xbacklight')
-
-    cache = apt.Cache()
-    if cache['plasma-desktop'].is_installed:
+    if params['de'] == 'KDE':
         softlist = softlist_common + softlist_kde
-    elif cache['network-manager-gnome'].is_installed:
+    elif params['de'] == 'GTK':
         softlist = softlist_common + softlist_gtk
-    cache.close()
-    if chassis == 'Notebook':
+    if params['chassis'] == 'Notebook':
         softlist += softlist_note
     apt_install(softlist)
     print('Done')
 
 
-def setup_firewall():
+def setup_firewall(params):
     """Install and setup netfilter-persistent."""
     script_dir = '/usr/local/scripts'
     script_iptables4 = '{0}/iptables4.sh'.format(script_dir)
@@ -232,7 +242,7 @@ ${{cmd}}-save > /etc/iptables/rules.v6
     print('Done')
 
 
-def setup_autofs():
+def setup_autofs(params):
     """Install autofs and setup mounts."""
     shares = ('public', 'Data', 'Multimedia')
     softlist = ('autofs', 'cifs-utils')
@@ -240,31 +250,32 @@ def setup_autofs():
     nas_domain = 'aristarkh.net'
     nas_fqdn = '.'.join((nas_name, nas_domain))
     mount_directory = '/{0}'.format(nas_name)
-    mount_directory_home = '/home/{0}/{1}'.format(login, nas_name)
-    secret_file = '/home/{0}/.{1}'.format(login, nas_name)
+    mount_directory_home = '/home/{0}/{1}'.format(params['login'], nas_name)
+    secret_file = '/home/{0}/.{1}'.format(params['login'], nas_name)
 
     print('Setting up {0} mounts'.format(nas_name))
     username = input(
-        'Please, enter your login for {0} [{1}]: '.format(nas_name, login))
+        'Please, enter your login for {0} [{1}]: '.format(nas_name,
+                                                          params['login']))
     if username == '':
-        username = login
+        username = params['login']
     password = getpass(prompt='Enter the password for {0}: '.format(nas_name))
     text = ('username={0}\n'.format(username),
             'password={0}\n'.format(password))
     with open(secret_file, 'w') as f:
         f.writelines(text)
-    os.chown(secret_file, uid, uid)
+    os.chown(secret_file, params['uid'], params['uid'])
     os.chmod(secret_file, 0o600)
     apt_install(softlist)
     os.makedirs(mount_directory, exist_ok=True)
     os.makedirs(mount_directory_home, exist_ok=True)
-    os.chown(mount_directory_home, uid, uid)
+    os.chown(mount_directory_home, params['uid'], params['uid'])
     if os.path.exists('/etc/auto.{0}'.format(nas_name)):
         os.remove('/etc/auto.{0}'.format(nas_name))
     for share in shares:
         mount_opts = '{0} -fstype=cifs,rw,credentials={1},uid={2},'\
                      'iocharset=utf8 ://{3}/{0}\n'
-        mount_opts = mount_opts.format(share, secret_file, uid, nas_fqdn)
+        mount_opts = mount_opts.format(share, secret_file, params['uid'], nas_fqdn)
         with open('/etc/auto.{0}'.format(nas_name), 'a') as f:
             f.write(mount_opts)
             if not os.path.exists(
@@ -285,14 +296,14 @@ def setup_autofs():
     print('Done')
 
 
-def setup_vim():
+def setup_vim(params):
     """Install and setup VIM."""
-    vim_config = '/home/{0}/.vimrc'.format(login)
+    vim_config = '/home/{0}/.vimrc'.format(params['login'])
     apt_install('vim')
     if os.path.exists(vim_config):
         bak_file = '.'.join((vim_config, 'bak'))
         shutil.copyfile(vim_config, bak_file)
-        os.chown(bak_file, uid, uid)
+        os.chown(bak_file, params['uid'], params['uid'])
     text = '''\
 syntax on
 
@@ -322,13 +333,13 @@ set expandtab
 '''
     with open(vim_config, 'w') as f:
         f.write(text)
-    os.chown(vim_config, uid, uid)
+    os.chown(vim_config, params['uid'], params['uid'])
     subprocess.call('update-alternatives --set editor /usr/bin/vim.basic',
                     shell=True)
     print('Done')
 
 
-def setup_brightness():
+def setup_brightness(params):
     """Setup startup brightness for laptop."""
     brightness = 70
     brightness_file = '/etc/X11/Xsession.d/98brightness'
@@ -340,15 +351,15 @@ def setup_brightness():
     print('Done')
 
 
-def setup_conky():
+def setup_conky(params):
     """Install and setup conky."""
-    conky_config = '/home/{0}/.conkyrc'.format(login)
+    conky_config = '/home/{0}/.conkyrc'.format(params['login'])
 
     apt_install('conky')
     if os.path.exists(conky_config):
         bak_file = '.'.join((conky_config, 'bak'))
         shutil.copyfile(conky_config, bak_file)
-        os.chown(bak_file, uid, uid)
+        os.chown(bak_file, params['uid'], params['uid'])
     network_devices = os.listdir('/sys/class/net')
     network_devices.remove('lo')
     if len(network_devices) < 2:
@@ -417,7 +428,7 @@ Date: ${{alignr}}${{time %d.%m.%Y}}
 Local: ${{alignr}}${{time %H:%M}}
 Moscow: ${{alignr}}${{tztime Europe/Moscow %H:%M}}
 '''.format(*network_devices)
-    if chassis == 'Notebook':
+    if params['chassis'] == 'Notebook':
         text += '''\
 ${hr}
 ${font Noto Sans [monotype]:bold:size=12}${color0}Battery${font}${color}
@@ -430,11 +441,11 @@ Time left: ${alignr}${battery_time}
     text += ']];\n'
     with open(conky_config, 'w') as f:
         f.write(text)
-    os.chown(conky_config, uid, uid)
+    os.chown(conky_config, params['uid'], params['uid'])
     print('Done')
 
 
-def main_menu():
+def main_menu(params):
     """Main menu."""
     menu = ('\n\t*** Main menu ***\n',
             '\t1. Setup GRUB',
@@ -452,19 +463,19 @@ def main_menu():
         if option == '0':
             exit()
         elif option == '1':
-            setup_grub()
+            setup_grub(params)
         elif option == '2':
-            install_software()
+            install_software(params)
         elif option == '3':
-            setup_firewall()
+            setup_firewall(params)
         elif option == '4':
-            setup_autofs()
+            setup_autofs(params)
         elif option == '5':
-            setup_vim()
+            setup_vim(params)
         elif option == '6':
-            setup_brightness()
+            setup_brightness(params)
         elif option == '7':
-            setup_conky()
+            setup_conky(params)
         else:
             print('Select the correct number!')
 
@@ -473,13 +484,11 @@ def main():
     """Main function."""
     is_root()
     get_info = GetInfo()
-    global login
-    global uid
-    global chassis
-    login = get_info.login
-    uid = get_info.uid
-    chassis = get_info.chassis
-    main_menu()
+    params = {'login': get_info.login,
+              'uid': get_info.uid,
+              'chassis': get_info.chassis,
+              'de': get_info.de}
+    main_menu(params)
 
 
 if __name__ == '__main__':
