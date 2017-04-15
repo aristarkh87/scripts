@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017 Oleg Dolgikh <aristarkh@aristarkh.net>
+# Copyright (c) 2017 Oleg Dolgikh
 #
 
 """The script for the initial setup of a freshly installed Linux."""
