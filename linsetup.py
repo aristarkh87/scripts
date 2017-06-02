@@ -15,11 +15,10 @@ import subprocess
 from getpass import getpass
 
 
-softlist_common = ('ttf-mscorefonts-installer', 'mc', 'vim', 'htop',
-                   'vlc', 'keepassx')
-softlist_gtk = ('network-manager-vpnc-gnome', 'remmina-plugin-rdp')
-softlist_kde = ('network-manager-vpnc', 'krdc', 'yakuake')
-softlist_note = ('tlp', 'tlp-rdw', 'powertop', 'xbacklight')
+softlist_common = 'ttf-mscorefonts-installer mc vim htop vlc keepassx'
+softlist_gtk = 'network-manager-vpnc-gnome remmina-plugin-rdp'
+softlist_kde = 'network-manager-vpnc krdc yakuake'
+softlist_note = 'tlp tlp-rdw powertop xbacklight'
 
 
 def is_root():
@@ -141,12 +140,13 @@ def setup_grub(params):
 
 def install_software(params):
     """Install default software."""
+    softlist = softlist_common.split(' ')
     if params['de'] == 'KDE':
-        softlist = softlist_common + softlist_kde
+        softlist.extend(softlist_kde.split(' '))
     elif params['de'] == 'GTK':
-        softlist = softlist_common + softlist_gtk
+        softlist.extend(softlist_gtk.split(' '))
     if params['chassis'] == 'Notebook':
-        softlist += softlist_note
+        softlist.extend(softlist_note.split(' '))
     apt_install(softlist)
     print('Done')
 
