@@ -27,21 +27,25 @@ setup_firewall() {
     local localnet4='192.168.10.0/24'
     local localnet6='2a02:17d0:1b0:d700::/64'
 
-    if [[ 'Ubuntu' = ${os_name} ]]; then
-        local iptables_file=/etc/iptables/rules.v4
-        local ip6tables_file=/etc/iptables/rules.v6
-        install_software iptables-persistent
-    elif [[ 'Arch Linux' = ${os_name} ]]; then
-        local iptables_file=/etc/iptables/iptables.rules
-        local ip6tables_file=/etc/iptables/ip6tables.rules
-        systemctl enable iptables
-        systemctl start iptables
-        systemctl enable ip6tables
-        systemctl start ip6tables
-    else
-        local iptables_file=/etc/iptables/iptables.rules
-        local ip6tables_file=/etc/iptables/ip6tables.rules
-    fi
+    case "${os_name}" in
+        'Ubuntu')
+            local iptables_file=/etc/iptables/rules.v4
+            local ip6tables_file=/etc/iptables/rules.v6
+            install_software iptables-persistent
+            ;;
+        'Arch')
+            local iptables_file=/etc/iptables/iptables.rules
+            local ip6tables_file=/etc/iptables/ip6tables.rules
+            systemctl enable iptables
+            systemctl start iptables
+            systemctl enable ip6tables
+            systemctl start ip6tables
+            ;;
+        *)
+            local iptables_file=/etc/iptables/rules.v4
+            local ip6tables_file=/etc/iptables/rules.v6
+            ;;
+    esac
 
     echo "Creating script ${iptables_script}..."
     mkdir /etc/iptables
@@ -120,8 +124,8 @@ setup_automount() {
     mkdir "${mount_directory}"
     for share in ${shares}; do
         mkdir "${mount_directory}/${share}"
-        unit_mount="/lib/systemd/system/$(basename ${mount_directory})-${share}.mount"
-        unit_automount="/lib/systemd/system/$(basename ${mount_directory})-${share}.automount"
+        unit_mount="/etc/systemd/system/$(basename ${mount_directory})-${share}.mount"
+        unit_automount="/etc/systemd/system/$(basename ${mount_directory})-${share}.automount"
         cat << EOF > "${unit_mount}"
 [Unit]
 Description=${share} Folder
@@ -296,13 +300,17 @@ EOF
 
 
 install_software() {
-    if [[ 'Ubuntu' = ${os_name} ]]; then
+    case ${os_name} in
+    'Ubuntu')
         install_apt $*
-    elif [[ 'Arch Linux' = ${os_name} ]]; then
+        ;;
+    'Arch')
         install_pacman $*
-    else
+        ;;
+    *)
         echo 'ERROR: Unknown OS. Unable to install software.'
-    fi
+        ;;
+    esac
 }
 
 
@@ -360,12 +368,18 @@ get_chassis() {
 
 get_os_name(){
     os_name=$(grep '^NAME=' /etc/os-release | awk -F '"' '{print $2}')
-    if [[ ! ${os_name} ]]; then
-        os_name='unknown'
-    fi
-    if [[ 'Linux Mint' = ${os_name} ]] || [[ 'KDE Neon' = ${os_name} ]]; then
-        os_name='Ubuntu'
-    fi
+    case "${os_name}" in
+        'Ubuntu'|'Linux Mint'|'KDE Neon' )
+            os_name='Ubuntu'
+            ;;
+        'Arch Linux'|'Manjaro Linux')
+            os_name='Arch'
+            ;;
+        *)
+            os_name='unknown'
+            ;;
+    esac
+
 }
 
 
