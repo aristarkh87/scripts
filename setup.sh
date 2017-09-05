@@ -37,9 +37,7 @@ setup_firewall() {
             local iptables_file=/etc/iptables/iptables.rules
             local ip6tables_file=/etc/iptables/ip6tables.rules
             systemctl enable iptables
-            systemctl start iptables
             systemctl enable ip6tables
-            systemctl start ip6tables
             ;;
         *)
             local iptables_file=/etc/iptables/rules.v4
