@@ -91,7 +91,7 @@ localnet6=${localnet6}
 
 # Save rules
 \${iptables}-save > ${iptables_file}
-\${ip6tables}-save > ${iptables_file}
+\${ip6tables}-save > ${ip6tables_file}
 EOF
     chmod +x "${iptables_script}"
     "${iptables_script}"
