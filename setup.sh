@@ -414,23 +414,23 @@ main_menu() {
                 main_menu
                 ;;
             "${options[1]}")
-                setup_brightness
-                main_menu
-                ;;
-            "${options[2]}")
                 setup_firewall
                 main_menu
                 ;;
-            "${options[3]}")
+            "${options[2]}")
                 setup_automount
                 main_menu
                 ;;
-            "${options[4]}")
+            "${options[3]}")
                 setup_vim
                 main_menu
                 ;;
-            "${options[5]}")
+            "${options[4]}")
                 setup_grub
+                main_menu
+                ;;
+            "${options[5]}")
+                setup_brightness
                 main_menu
                 ;;
             "${options[6]}")
