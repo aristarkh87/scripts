@@ -194,11 +194,15 @@ EOF
 
 
 setup_grub() {
-    local grub_config='/etc/default/grub'
+    local grub_config='/home/user/grub'
     cp -n "${grub_config}" "${grub_config}.bak"
     echo 'Enable SAVEDEFAULT...'
-    sed -i '/GRUB_DEFAULT/i GRUB_SAVEDEFAULT=true' ${grub_config}
-    sed -i 's/GRUB_DEFAULT=.*$/GRUB_DEFAULT=saved/' ${grub_config}
+    if grep -q GRUB_SAVEDEFAULT ${grub_config}; then
+        sed -i 's/^.*GRUB_SAVEDEFAULT.*$/GRUB_SAVEDEFAULT=true/' ${grub_config}
+    else
+        echo 'GRUB_SAVEDEFAULT=true' >> ${grub_config}
+    fi
+    sed -i 's/^.*GRUB_DEFAULT=.*$/GRUB_DEFAULT=saved/' ${grub_config}
     sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*$/GRUB_CMDLINE_LINUX_DEFAULT=""/' ${grub_config}
     grub-mkconfig -o /boot/grub/grub.cfg
     echo 'Done'
