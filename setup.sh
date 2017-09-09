@@ -3,6 +3,7 @@
 # Copyright (c) 2017 Oleg Dolgikh
 #
 
+softlist_common='mc sudo vim htop vlc'
 softlist_gtk='vpnc network-manager-vpnc-gnome remmina remmina-plugin-rdp'
 softlist_kde='vpnc network-manager-vpnc krdc yakuake'
 softlist_note='tlp tlp-rdw powertop'
