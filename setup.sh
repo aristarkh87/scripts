@@ -219,6 +219,10 @@ setup_backlight() {
         install_software xorg_xbacklight
         ;;
     *)
+        echo 'ERROR Unknown packet manager.'
+        return
+        ;;
+    esac
     echo "xbacklight -set ${brightness}" >> ${backlight_file}
     xbacklight -set ${brightness}
     echo "Startup brightness is set to ${brightness}"
@@ -315,7 +319,7 @@ install_software() {
         install_pacman $*
         ;;
     *)
-        echo 'ERROR: Unknown OS. Unable to install software.'
+        echo 'ERROR Unknown OS. Unable to install software.'
         ;;
     esac
 }
