@@ -3,10 +3,9 @@
 # Copyright (c) 2017 Oleg Dolgikh
 #
 
-softlist_common='ttf-mscorefonts-installer mc vim htop vlc keepassx'
-softlist_gtk='network-manager-vpnc-gnome remmina-plugin-rdp'
-softlist_kde='network-manager-vpnc krdc yakuake'
-softlist_note='tlp tlp-rdw powertop xbacklight'
+softlist_gtk='vpnc network-manager-vpnc-gnome remmina remmina-plugin-rdp'
+softlist_kde='vpnc network-manager-vpnc krdc yakuake'
+softlist_note='tlp tlp-rdw powertop'
 
 
 generate_softlist() {
