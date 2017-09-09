@@ -27,13 +27,13 @@ setup_firewall() {
     local localnet4='192.168.10.0/24'
     local localnet6='2a02:17d0:1b0:d700::/64'
 
-    case "${os_name}" in
-        'Ubuntu')
+    case "${pm}" in
+        'pm_apt')
             local iptables_file=/etc/iptables/rules.v4
             local ip6tables_file=/etc/iptables/rules.v6
             install_software iptables-persistent
             ;;
-        'Arch')
+        'pm_pacman')
             local iptables_file=/etc/iptables/iptables.rules
             local ip6tables_file=/etc/iptables/ip6tables.rules
             systemctl enable iptables
@@ -205,12 +205,21 @@ setup_grub() {
 }
 
 
-# TODO возможно нужно изменить способ
-setup_brightness() {
+setup_backlight() {
     local brightness=70
-    local brightness_file = '/etc/X11/Xsession.d/98brightness'
-    install_software xbacklight
-    echo "/usr/bin/xbacklight -set ${brightness}" > ${brightness_file}
+    case ${pm} in
+    'pm_apt')
+        local backlight_file = '/etc/X11/Xsession.d/99backlight'
+        install_software xbacklight
+        ;;
+    'pm_pacman')
+        local backlight_file = '/etc/X11/xinit/xinitrc.d/99backlight'
+        echo '#!/bin/sh' > ${backlight_file}
+        chmod +x ${backlight_file}
+        install_software xorg_xbacklight
+        ;;
+    *)
+    echo "xbacklight -set ${brightness}" >> ${backlight_file}
     xbacklight -set ${brightness}
     echo "Startup brightness is set to ${brightness}"
     echo 'Done'
@@ -298,11 +307,11 @@ EOF
 
 
 install_software() {
-    case ${os_name} in
-    'Ubuntu')
+    case ${pm} in
+    'pm_apt')
         install_apt $*
         ;;
-    'Arch')
+    'pm_pacman')
         install_pacman $*
         ;;
     *)
@@ -327,7 +336,7 @@ install_pacman() {
     for i in $*; do
         if ! pacman -Q "${i}" &> /dev/null; then
             echo -e "\Installing ${i}..."
-            pacman -S "${i}"
+            pacman -S "${i} --needed"
         fi
     done
     echo 'Done'
@@ -364,17 +373,17 @@ get_chassis() {
 }
 
 
-get_os_name(){
+get_pm(){
     os_name=$(grep '^NAME=' /etc/os-release | awk -F '"' '{print $2}')
     case "${os_name}" in
         'Ubuntu'|'Linux Mint'|'KDE Neon' )
-            os_name='Ubuntu'
+            pm='pm_apt'
             ;;
         'Arch Linux'|'Manjaro Linux')
-            os_name='Arch'
+            pm='pm_pacman'
             ;;
         *)
-            os_name='unknown'
+            pm='unknown'
             ;;
     esac
 
@@ -398,7 +407,7 @@ main_menu() {
                    'Setup automount'
                    'Setup Vim'
                    'Setup GRUB'
-                   'Setup brightness'
+                   'Setup backlight'
                    'Setup Conky'
                    'Exit')
     local PS3='Enter the number: '
@@ -428,7 +437,7 @@ main_menu() {
                 main_menu
                 ;;
             "${options[5]}")
-                setup_brightness
+                setup_backlight
                 main_menu
                 ;;
             "${options[6]}")
@@ -461,7 +470,7 @@ main() {
         fi
     fi
     get_chassis
-    get_os_name
+    get_pm
     get_de
     main_menu
 }
