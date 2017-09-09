@@ -156,6 +156,18 @@ EOF
 }
 
 
+setup_nano() {
+    nano_config="/home/${user_name}/.nanorc"
+    install_software nano
+    cat << EOF > "${nano_config}"
+set tabsize 4
+set tabstospaces
+include "/usr/share/nano/*.nanorc"
+    chown ${user_name}: "${nano_config}"
+    echo 'Done'
+}
+
+
 setup_vim() {
     vim_config="/home/${user_name}/.vimrc"
     install_software vim
@@ -413,6 +425,7 @@ main_menu() {
     local options=('Install software'
                    'Setup firewall'
                    'Setup automount'
+                   'Setup Nano'
                    'Setup Vim'
                    'Setup GRUB'
                    'Setup backlight'
@@ -437,18 +450,22 @@ main_menu() {
                 main_menu
                 ;;
             "${options[3]}")
-                setup_vim
+                setup_nano
                 main_menu
                 ;;
             "${options[4]}")
-                setup_grub
+                setup_vim
                 main_menu
                 ;;
             "${options[5]}")
-                setup_backlight
+                setup_grub
                 main_menu
                 ;;
             "${options[6]}")
+                setup_backlight
+                main_menu
+                ;;
+            "${options[7]}")
                 setup_conky
                 main_menu
                 ;;
