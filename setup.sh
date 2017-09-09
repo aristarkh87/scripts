@@ -216,7 +216,7 @@ setup_backlight() {
         local backlight_file='/etc/X11/xinit/xinitrc.d/99backlight'
         echo '#!/bin/sh' > "${backlight_file}"
         chmod +x "${backlight_file}"
-        install_software xorg_xbacklight
+        install_software xorg-xbacklight
         ;;
     *)
         echo 'ERROR Unknown packet manager.'
