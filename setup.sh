@@ -209,13 +209,13 @@ setup_backlight() {
     local brightness=70
     case ${pm} in
     'pm_apt')
-        local backlight_file = '/etc/X11/Xsession.d/99backlight'
+        local backlight_file='/etc/X11/Xsession.d/99backlight'
         install_software xbacklight
         ;;
     'pm_pacman')
-        local backlight_file = '/etc/X11/xinit/xinitrc.d/99backlight'
-        echo '#!/bin/sh' > ${backlight_file}
-        chmod +x ${backlight_file}
+        local backlight_file='/etc/X11/xinit/xinitrc.d/99backlight'
+        echo '#!/bin/sh' > "${backlight_file}"
+        chmod +x "${backlight_file}"
         install_software xorg_xbacklight
         ;;
     *)
@@ -223,8 +223,8 @@ setup_backlight() {
         return
         ;;
     esac
-    echo "xbacklight -set ${brightness}" >> ${backlight_file}
-    xbacklight -set ${brightness}
+    echo "xbacklight -set ${brightness}" >> "${backlight_file}"
+    bash "${backlight_file}"
     echo "Startup brightness is set to ${brightness}"
     echo 'Done'
 }
