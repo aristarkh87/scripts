@@ -339,8 +339,8 @@ install_apt() {
 install_pacman() {
     for i in $*; do
         if ! pacman -Q "${i}" &> /dev/null; then
-            echo -e "\Installing ${i}..."
-            pacman -S "${i} --needed"
+            echo -e "\nInstalling ${i}..."
+            pacman -S "${i}" --needed
         fi
     done
     echo 'Done'
