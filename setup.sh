@@ -163,6 +163,7 @@ setup_nano() {
 set tabsize 4
 set tabstospaces
 include "/usr/share/nano/*.nanorc"
+EOF
     chown ${user_name}: "${nano_config}"
     echo 'Done'
 }
