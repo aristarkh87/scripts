@@ -19,6 +19,7 @@ generate_softlist() {
         local softlist="${softlist} ${softlist_note}"
     fi
     install_software ${softlist}
+    echo 'Done'
 }
 
 
@@ -330,37 +331,15 @@ EOF
 install_software() {
     case ${pm} in
     'pm_apt')
-        install_apt $*
+        apt-get install $*
         ;;
     'pm_pacman')
-        install_pacman $*
+        pacman -S $* --needed
         ;;
     *)
         echo 'ERROR Unknown OS. Unable to install software.'
         ;;
     esac
-}
-
-
-install_apt() {
-    for i in $*; do
-        if ! dpkg -s "${i}" &> /dev/null; then
-            echo -e "\nInstalling ${i}..."
-            apt-get install "${i}"
-        fi
-    done
-    echo 'Done'
-}
-
-
-install_pacman() {
-    for i in $*; do
-        if ! pacman -Q "${i}" &> /dev/null; then
-            echo -e "\nInstalling ${i}..."
-            pacman -S "${i}" --needed
-        fi
-    done
-    echo 'Done'
 }
 
 
@@ -407,18 +386,22 @@ get_pm(){
             pm='unknown'
             ;;
     esac
-
 }
 
 
 get_de() {
-    if [[ -f /usr/bin/sddm ]]; then
-        DE='KDE'
-    elif [[ -f /usr/bin/gdm3 ]] || [[ -f /usr/bin/lightdm ]]; then
-        DE='GTK'
-    else
-        DE='unknown'
-    fi
+    case "$XDG_CURRENT_DESKTOP" in
+        'KDE')
+            DE='KDE'
+            ;;
+        'GNOME'|'XFCE'|'MATE'|'X-Cinnamon')
+            DE='GTK'
+            ;;
+        *)
+            echo "WARNING: Unable to define your Desktop: $XDG_CURRENT_DESKTOP."
+            DE='unknown'
+            ;;
+    esac
 }
 
 
@@ -485,7 +468,7 @@ main_menu() {
 
 main() {
     if [[ $(whoami) != root ]]; then
-        sudo bash "$0" $(whoami) "$@"
+        sudo -E bash "$0" $(whoami) "$@"
         exit
     else
         if [[ '' != $1 ]] && id $1 &> /dev/null; then
