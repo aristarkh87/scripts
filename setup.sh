@@ -381,6 +381,7 @@ get_de() {
             DE='GTK'
             ;;
         *)
+            echo "WARNING: Unable to define your Desktop: $XDG_CURRENT_DESKTOP."
             DE='unknown'
             ;;
     esac
