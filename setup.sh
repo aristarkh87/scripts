@@ -373,13 +373,17 @@ get_pm(){
 
 
 get_de() {
-    if [[ -f /usr/bin/sddm ]]; then
-        DE='KDE'
-    elif [[ -f /usr/bin/gdm3 ]] || [[ -f /usr/bin/lightdm ]]; then
-        DE='GTK'
-    else
-        DE='unknown'
-    fi
+    case "$XDG_CURRENT_DESKTOP" in
+        'KDE')
+            DE='KDE'
+            ;;
+        'GNOME'|'XFCE'|'MATE'|'X-Cinnamon')
+            DE='GTK'
+            ;;
+        *)
+            DE='unknown'
+            ;;
+    esac
 }
 
 
@@ -441,7 +445,7 @@ main_menu() {
 
 main() {
     if [[ $(whoami) != root ]]; then
-        sudo bash "$0" $(whoami) "$@"
+        sudo -E bash "$0" $(whoami) "$@"
         exit
     else
         if [[ '' != $1 ]] && id $1 &> /dev/null; then
