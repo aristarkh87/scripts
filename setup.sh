@@ -16,7 +16,7 @@ generate_softlist() {
         local softlist="${softlist_common} ${softlist_gtk}"
     fi
     if [[ ${chassis_type} = Notebook ]]; then
-        local softlist="${softlist} softlist_note"
+        local softlist="${softlist} ${softlist_note}"
     fi
     install_software ${softlist}
 }
