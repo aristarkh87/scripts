@@ -160,10 +160,10 @@ EOF
 setup_nano() {
     nano_config="/home/${user_name}/.nanorc"
     install_software nano
+    sed -i '/include "\/usr\/share\/nano\/\*\.nanorc"/s/# //' /etc/nanorc
     cat << EOF > "${nano_config}"
 set tabsize 4
 set tabstospaces
-include "/usr/share/nano/*.nanorc"
 EOF
     chown ${user_name}: "${nano_config}"
     echo 'Done'
