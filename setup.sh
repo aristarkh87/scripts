@@ -3,9 +3,9 @@
 # Copyright (c) 2017 Oleg Dolgikh
 #
 
-softlist_common='mc sudo vim htop vlc'
-softlist_gtk='vpnc network-manager-vpnc-gnome remmina remmina-plugin-rdp'
-softlist_kde='vpnc network-manager-vpnc krdc yakuake'
+softlist_common='mc sudo htop vlc'
+softlist_gtk='vpnc networkmanager-vpnc network-manager-vpnc-gnome freerdp remmina remmina-plugin-rdp'
+softlist_kde='vpnc networkmanager-vpnc network-manager-vpnc krdc yakuake'
 softlist_note='tlp tlp-rdw powertop'
 
 
@@ -331,10 +331,15 @@ EOF
 install_software() {
     case ${pm} in
     'pm_apt')
-        apt-get install $*
+        for i in $*; do
+            apt-get install ${i}
+        done
         ;;
     'pm_pacman')
-        pacman -S $* --needed
+        pacman -Syu
+        for i in $*; do
+            pacman -S ${i} --needed
+        done
         ;;
     *)
         echo 'ERROR Unknown OS. Unable to install software.'
