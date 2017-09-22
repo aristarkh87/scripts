@@ -107,7 +107,6 @@ setup_automount() {
     local nas_fqdn="${nas_name}.${nas_domain}"
     local secret_file="/home/${user_name}/.${nas_name}"
     local mount_directory="/storage"
-    local user_id=$(id -u ${user_name})
 
     echo "Setting up ${nas_name} mounts..."
     read -p "Please, enter your login for ${nas_fqdn} [${user_name}]: " username
@@ -134,7 +133,7 @@ After=remote-fs.target
 What=//${nas_fqdn}/${share}
 Where=${mount_directory}/${share}
 Type=cifs
-Options=_netdev,rw,credentials=${secret_file},uid=${user_id},iocharset=utf8
+Options=_netdev,vers=3.0,credentials=${secret_file},uid=${user_name},iocharset=utf8
 EOF
         cat << EOF > "${unit_automount}"
 [Unit]
