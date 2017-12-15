@@ -207,7 +207,7 @@ EOF
 
 
 setup_grub() {
-    local grub_config='/home/user/grub'
+    local grub_config='/etc/default/grub'
     cp -n "${grub_config}" "${grub_config}.bak"
     echo 'Enable SAVEDEFAULT...'
     if grep -q GRUB_SAVEDEFAULT ${grub_config}; then
