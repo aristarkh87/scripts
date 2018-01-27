@@ -134,18 +134,17 @@ setup_autofs() {
             local autofs_dir='/etc'
             ;;
     esac
-
     if [[ ! -d "${autofs_dir}/auto.master.d" ]]; then
         echo "Creating directory ${autofs_dir}/auto.master.d..."
         mkdir "${autofs_dir}/auto.master.d"
     fi
     echo "Creating config file ${autofs_dir}/auto.master.d/${nas_name}.autofs"
-    echo "$mount_directory ${autofs_dir}/auto.storage --timeout=30 --ghost" > "${autofs_dir}/auto.master.d/${nas_name}.autofs"
+    echo "${mount_directory} ${autofs_dir}/auto.storage --timeout=30 --ghost" > "${autofs_dir}/auto.master.d/${nas_name}.autofs"
     if [[ -f "${autofs_dir}/auto.storage" ]]; then
         rm "${autofs_dir}/auto.storage"
     fi
     for share in ${shares}; do
-        echo "${share} -fstype=cifs,rw,credentials=${secret_file},uid=${user_name},gid=${user_name},file_mode=0644,dir_mode=0755,iocharset=utf8 ://${nas_fqdn}/${share}" >> "${autofs_dir}/auto.storage"
+        echo "${share} -fstype=cifs,rw,_netdev,vers=3.0,credentials=${secret_file},uid=${user_name},gid=${user_name},file_mode=0644,dir_mode=0755,iocharset=utf8 ://${nas_fqdn}/${share}" >> "${autofs_dir}/auto.storage"
     done
     chmod 600 "${autofs_dir}/auto.storage"
     ln -fs "${mount_directory}" "/home/${user_name}"
